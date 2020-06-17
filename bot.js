@@ -62,32 +62,30 @@ bot.on('text', async (ctx) => {
 
   if (ctx.message.text.length < 3) {
     ctx.reply('Please type at least 3 symbol');
+  } else {
+    try {
+      const { data } = await axios.get(SEARCH_API(ctx.message.text));
 
-    return;
-  }
+      if (data.length) {
+        const funds = data.slice(0, 6);
+        const buttons = funds.reduce((btnsArr, { ticker, long_name }) => {
+          btnsArr.push([{ text: long_name, callback_data: ticker }]);
 
-  try {
-    const { data } = await axios.get(SEARCH_API(ctx.message.text));
-
-    if (data.length) {
-      const funds = data.slice(0, 6);
-      const buttons = funds.reduce((btnsArr, { ticker, long_name }) => {
-        btnsArr.push([{ text: long_name, callback_data: ticker }]);
-
-        return btnsArr;
-      }, []);
+          return btnsArr;
+        }, []);
 
 
-      ctx.replyWithHTML(reply.searchReply(funds), {
-        reply_markup: {
-          inline_keyboard: buttons
-        }
-      });
-    } else {
-      ctx.reply('No Funds found');
+        ctx.replyWithHTML(reply.searchReply(funds), {
+          reply_markup: {
+            inline_keyboard: buttons
+          }
+        });
+      } else {
+        ctx.reply('No Funds found');
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
   }
 });
 
